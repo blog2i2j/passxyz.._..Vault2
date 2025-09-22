@@ -128,6 +128,24 @@ namespace PassXYZ.Vault.ViewModels
         }
 
         /// <summary>
+        /// Update the icon of an item. The item can be a group or an entry.
+        /// </summary>
+        /// <param name="item">an instance of Item</param>
+        public async void UpdateIcon(Item item) 
+        {
+            if (item == null)
+            {
+                return;
+            }
+
+            await Shell.Current.Navigation.PushAsync(new IconsPage(async (PxFontIcon icon) => {
+                item.SetFontIcon(icon);
+                await dataStore.UpdateItemAsync(item);
+            }));
+        }
+
+
+        /// <summary>
         /// Update an item. The item can be a group or an entry.
         /// </summary>
         /// <param name="item">an instance of Item</param>
@@ -156,13 +174,20 @@ namespace PassXYZ.Vault.ViewModels
                 return;
             }
 
-            if (Items.Remove(item))
+            var question = Properties.Resources.action_id_delete + " " + item.Name + "!";
+            var message = Properties.Resources.message_id_alert_deleting + " " + item.Name + "?";
+            bool answer = await Shell.Current.DisplayAlert(question, message, Properties.Resources.alert_id_yes, Properties.Resources.alert_id_no);
+
+            if (answer) 
             {
-                _ = await dataStore.DeleteItemAsync(item.Id);
-            }
-            else
-            {
-                throw new NullReferenceException("Delete item error");
+                if (Items.Remove(item))
+                {
+                    _ = await dataStore.DeleteItemAsync(item.Id);
+                }
+                else
+                {
+                    throw new NullReferenceException("Delete item error");
+                }
             }
         }
 
